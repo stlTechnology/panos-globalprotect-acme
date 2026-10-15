@@ -1,0 +1,10 @@
+# site notes (internal)
+NOTES.md
+# vendor PDFs (copyrighted, not ours to redistribute)
+*.pdf
+# runtime data if someone runs setup from a clone with -Root here
+config.json
+apikey.txt
+deployed-thumbprint.txt
+posh-acme/
+logs/

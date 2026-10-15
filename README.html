@@ -1,0 +1,679 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PaloAcme Setup Guide</title>
+<style>
+:root {
+  --bg: #f7f7f5; --surface: #ffffff; --surface-2: #f0efeb; --text: #1d1d1f; --muted: #5f6368;
+  --border: #e2e0da; --accent: #c2410c; --accent-soft: #fff1e8; --link: #9a3412;
+  --ok: #15803d; --ok-soft: #e8f6ec; --warn: #a16207; --warn-soft: #fdf6e3; --bad: #b91c1c; --bad-soft: #fdecec;
+  --info: #1d4ed8; --info-soft: #eaf0fd; --code-bg: #1f2328; --code-text: #e6edf3;
+  --radius: 10px; --shadow: 0 1px 2px rgba(0,0,0,.05), 0 2px 8px rgba(0,0,0,.04);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #141416; --surface: #1c1c1f; --surface-2: #26262a; --text: #ececec; --muted: #a1a1aa;
+    --border: #33333a; --accent: #fb923c; --accent-soft: #2d1d12; --link: #fdba74;
+    --ok: #4ade80; --ok-soft: #13261a; --warn: #facc15; --warn-soft: #2a2410; --bad: #f87171; --bad-soft: #2c1515;
+    --info: #93c5fd; --info-soft: #152035; --code-bg: #0d1117; --code-text: #e6edf3; --shadow: none;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #141416; --surface: #1c1c1f; --surface-2: #26262a; --text: #ececec; --muted: #a1a1aa;
+  --border: #33333a; --accent: #fb923c; --accent-soft: #2d1d12; --link: #fdba74;
+  --ok: #4ade80; --ok-soft: #13261a; --warn: #facc15; --warn-soft: #2a2410; --bad: #f87171; --bad-soft: #2c1515;
+  --info: #93c5fd; --info-soft: #152035; --code-bg: #0d1117; --code-text: #e6edf3; --shadow: none;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 16px; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 16px/1.6 "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+a { color: var(--link); }
+code, pre, kbd { font-family: "Cascadia Code", Consolas, "SFMono-Regular", Menlo, monospace; font-size: .88em; }
+:not(pre) > code { background: var(--surface-2); border: 1px solid var(--border); border-radius: 5px; padding: .05em .35em; overflow-wrap: anywhere; }
+.layout { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 40px; max-width: 1180px; margin: 0 auto; padding: 32px 24px 80px; }
+nav.toc { position: sticky; top: 24px; align-self: start; max-height: calc(100vh - 48px); overflow: auto; font-size: .92rem; }
+nav.toc .brand { font-weight: 700; margin-bottom: 12px; }
+nav.toc ol { list-style: none; padding: 0; margin: 0; counter-reset: toc; }
+nav.toc li a { display: block; padding: 5px 10px; border-radius: 6px; color: var(--muted); text-decoration: none; border-left: 2px solid transparent; }
+nav.toc li a:hover { background: var(--surface-2); color: var(--text); }
+nav.toc li a.active { color: var(--accent); border-left-color: var(--accent); background: var(--accent-soft); }
+.theme-btn { margin-top: 16px; background: var(--surface); color: var(--muted); border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px; cursor: pointer; font: inherit; font-size: .85rem; }
+main { min-width: 0; }
+header.hero { margin-bottom: 36px; }
+header.hero h1 { font-size: 2.1rem; line-height: 1.2; margin: 0 0 10px; letter-spacing: -.01em; }
+header.hero p.lead { font-size: 1.12rem; color: var(--muted); margin: 0 0 16px; max-width: 760px; }
+.badges { display: flex; flex-wrap: wrap; gap: 8px; }
+.badge { font-size: .8rem; padding: 3px 10px; border-radius: 999px; background: var(--surface); border: 1px solid var(--border); color: var(--muted); }
+section { margin: 0 0 56px; }
+h2 { font-size: 1.5rem; margin: 0 0 6px; padding-top: 8px; display: flex; align-items: baseline; gap: 12px; }
+h2 .num { color: var(--accent); font-variant-numeric: tabular-nums; font-size: 1rem; font-weight: 700; }
+h2 + .sub { color: var(--muted); margin: 0 0 20px; }
+h3 { font-size: 1.12rem; margin: 28px 0 10px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); }
+.card h4 { margin: 0 0 6px; font-size: .95rem; }
+.card p { margin: 0; color: var(--muted); font-size: .94rem; }
+.card .big { font-size: 1.6rem; font-weight: 700; color: var(--text); display: block; margin-bottom: 2px; }
+.callout { border-radius: var(--radius); padding: 14px 16px 14px 18px; margin: 16px 0; border: 1px solid; border-left-width: 4px; }
+.callout p { margin: 0; } .callout p + p { margin-top: 6px; }
+.callout.info { background: var(--info-soft); border-color: var(--info); }
+.callout.warn { background: var(--warn-soft); border-color: var(--warn); }
+.callout.bad { background: var(--bad-soft); border-color: var(--bad); }
+.callout.ok { background: var(--ok-soft); border-color: var(--ok); }
+.callout strong:first-child { display: block; margin-bottom: 2px; }
+.flow { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; counter-reset: flow; margin: 8px 0 18px; }
+.flow .step { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 14px 14px 14px; box-shadow: var(--shadow); }
+.flow .step::before { counter-increment: flow; content: counter(flow); display: inline-grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--accent); color: #fff; font-size: .8rem; font-weight: 700; margin-bottom: 6px; }
+.flow .step b { display: block; margin-bottom: 2px; }
+.flow .step span { color: var(--muted); font-size: .9rem; }
+.table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow); margin: 12px 0; }
+table { border-collapse: collapse; width: 100%; font-size: .94rem; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { background: var(--surface-2); font-weight: 600; font-size: .85rem; text-transform: uppercase; letter-spacing: .03em; color: var(--muted); }
+tr:last-child td { border-bottom: 0; }
+.pill { display: inline-block; font-size: .76rem; font-weight: 700; padding: 1px 8px; border-radius: 999px; white-space: nowrap; }
+.pill.ok { background: var(--ok-soft); color: var(--ok); } .pill.bad { background: var(--bad-soft); color: var(--bad); }
+.pill.info { background: var(--info-soft); color: var(--info); } .pill.warn { background: var(--warn-soft); color: var(--warn); }
+ul.check { list-style: none; padding: 0; margin: 0; }
+ul.check li { display: flex; gap: 10px; align-items: flex-start; padding: 9px 0; border-bottom: 1px dashed var(--border); }
+ul.check li:last-child { border-bottom: 0; }
+ul.check input { margin-top: 5px; accent-color: var(--accent); width: 16px; height: 16px; flex: none; }
+ul.check label { cursor: pointer; }
+ul.check .path { color: var(--muted); font-size: .9rem; display: block; }
+.prereq { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+.prereq .card h4 { font-size: 1.02rem; margin-bottom: 10px; }
+pre { position: relative; background: var(--code-bg); color: var(--code-text); border-radius: var(--radius); padding: 14px 16px; overflow-x: auto; margin: 10px 0; line-height: 1.5; }
+pre .c { color: #8b949e; } pre .p { color: #7ee787; } pre .a { color: #ffa657; } pre .q { color: #79c0ff; }
+.copy { position: absolute; top: 8px; right: 8px; background: rgba(255,255,255,.08); color: #c9d1d9; border: 1px solid rgba(255,255,255,.15); border-radius: 6px; font: inherit; font-size: .75rem; padding: 3px 9px; cursor: pointer; }
+.copy:hover { background: rgba(255,255,255,.16); }
+.console { background: var(--code-bg); color: var(--code-text); border-radius: var(--radius); padding: 16px; font-family: "Cascadia Code", Consolas, monospace; font-size: .86rem; line-height: 1.65; overflow-x: auto; white-space: pre; }
+.console .q { color: #79c0ff; } .console .a { color: #ffa657; font-weight: 700; } .console .c { color: #8b949e; } .console .g { color: #7ee787; }
+.tests { display: grid; gap: 14px; }
+.test { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.test-head { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--surface-2); border-bottom: 1px solid var(--border); }
+.test-head .tid { font-weight: 800; color: var(--accent); font-variant-numeric: tabular-nums; min-width: 34px; }
+.test-head h4 { margin: 0; font-size: 1rem; flex: 1; }
+.test-head input { accent-color: var(--ok); width: 18px; height: 18px; }
+.test-body { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+.test-body > div { padding: 12px 16px; }
+.test-body > div + div { border-left: 1px solid var(--border); }
+.test-body h5 { margin: 0 0 4px; font-size: .74rem; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+.test-body p, .test-body ol, .test-body ul { margin: 0; font-size: .94rem; }
+.test-body ol, .test-body ul { padding-left: 18px; }
+.test.done { opacity: .65; } .test.done .test-head { background: var(--ok-soft); }
+.risk { margin-left: auto; }
+details { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); margin: 10px 0; box-shadow: var(--shadow); }
+details summary { cursor: pointer; padding: 12px 16px; font-weight: 600; }
+details > div { padding: 0 16px 14px; }
+.prompts { counter-reset: pr; list-style: none; padding: 0; margin: 0; }
+.prompts > li { position: relative; padding: 12px 14px 12px 50px; border: 1px solid var(--border); background: var(--surface); border-radius: var(--radius); margin-bottom: 8px; }
+.prompts > li::before { counter-increment: pr; content: counter(pr); position: absolute; left: 14px; top: 12px; width: 24px; height: 24px; border-radius: 50%; background: var(--surface-2); border: 1px solid var(--border); display: grid; place-items: center; font-size: .8rem; font-weight: 700; color: var(--accent); }
+.prompts .ask { font-weight: 600; }
+.prompts p { margin: 4px 0 0; color: var(--muted); font-size: .94rem; }
+.prompts ul { margin: 6px 0 0; padding-left: 18px; font-size: .94rem; }
+footer { color: var(--muted); font-size: .88rem; border-top: 1px solid var(--border); padding-top: 18px; }
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; padding: 20px 16px 60px; gap: 0; }
+  nav.toc { position: static; max-height: none; margin-bottom: 24px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; }
+  nav.toc ol { display: flex; flex-wrap: wrap; gap: 4px; }
+  nav.toc li a { border-left: 0; padding: 4px 8px; background: var(--surface-2); }
+  header.hero h1 { font-size: 1.7rem; }
+  .test-body { grid-template-columns: 1fr; }
+  .test-body > div + div { border-left: 0; border-top: 1px solid var(--border); }
+}
+@media print {
+  nav.toc, .copy, .theme-btn { display: none; }
+  .layout { display: block; padding: 0; }
+  body { background: #fff; color: #000; font-size: 11pt; }
+  section { break-inside: auto; } .test, .card, pre { break-inside: avoid; }
+  pre, .console { white-space: pre-wrap; }
+}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<nav class="toc" aria-label="Contents">
+  <div class="brand">PaloAcme Guide</div>
+  <ol>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#how">How it works</a></li>
+    <li><a href="#prereq">Before you start</a></li>
+    <li><a href="#install">Install</a></li>
+    <li><a href="#test">Test plan</a></li>
+    <li><a href="#golive">Go live</a></li>
+    <li><a href="#mgmt">Admin UI (optional)</a></li>
+    <li><a href="#ops">Operations</a></li>
+    <li><a href="#trouble">Troubleshooting</a></li>
+    <li><a href="#security">Security &amp; limits</a></li>
+  </ol>
+  <button class="theme-btn" id="themeBtn" type="button">Toggle dark / light</button>
+</nav>
+
+<main>
+<header class="hero" id="overview">
+  <h1>GlobalProtect certificate auto-renewal</h1>
+  <p class="lead">A public SSL certificate for the GlobalProtect portal and gateway that renews itself and installs itself
+  on the Palo Alto, from a small scheduled task on an on-site Windows machine.</p>
+  <div class="badges">
+    <span class="badge">PAN-OS 11.2 · standalone</span>
+    <span class="badge">Windows Server 2019+ / Win 10+</span>
+    <span class="badge">PowerShell 7 (5.1 fallback)</span>
+    <span class="badge">Cert: Let's Encrypt · GoDaddy SSL · other ACME CA</span>
+    <span class="badge">DNS: GoDaddy · Cloudflare</span>
+  </div>
+</header>
+
+<section>
+  <div class="cards">
+    <div class="card"><span class="big">90 → 45 days</span><p>Let's Encrypt cert lifetime (shrinking by 2028). Renews automatically when a third of the lifetime is left.</p></div>
+    <div class="card"><span class="big">Daily</span><p>The task checks once a day. It touches the firewall only when there's a new cert.</p></div>
+    <div class="card"><span class="big">0 clicks</span><p>After go-live, no manual renewals. You get an event-log alert if anything fails.</p></div>
+    <div class="card"><span class="big">~1 hour</span><p>Rough time for prerequisites, staging test and go-live, plus a short maintenance window.</p></div>
+  </div>
+  <div class="callout info">
+    <strong>Why now</strong>
+    <p>The maximum life of public SSL certificates is shrinking: 200 days since March 2026, 100 days from March 2027,
+    47 days from March 2029. Renewing a VPN certificate by hand every few weeks isn't sustainable.</p>
+  </div>
+  <div class="callout warn">
+    <strong>Status</strong>
+    <p><b>Field-tested</b> (2026-10, PAN-OS 11.2 standalone, Windows Server 2022, PowerShell 7.6): Let's Encrypt production
+    cert with Cloudflare DNS, deployed to GlobalProtect and confirmed working with the Windows GP client and on iOS.</p>
+    <p><b>Not yet field-tested:</b> a real renewal replacing an existing cert (T2b), the failure-revert call (T2c), GoDaddy DNS,
+    GoDaddy SSL (ACME/EAB), other ACME CAs, and Windows PowerShell 5.1 on a real server.</p>
+    <p><b>Open issue:</b> least-privilege firewall role. Today only Superuser is confirmed to work (see <a href="#prereq">Before you start</a>).</p>
+  </div>
+</section>
+
+<section id="how">
+  <h2><span class="num">01</span>How it works</h2>
+  <p class="sub">Every day at 03:17 the Windows task runs these steps:</p>
+  <div class="flow">
+    <div class="step"><b>Check</b><span>Is the cert due for renewal? Usually no, so the run ends here.</span></div>
+    <div class="step"><b>Prove the domain</b><span>Adds a temporary <code>_acme-challenge</code> TXT record through the GoDaddy or Cloudflare DNS API.</span></div>
+    <div class="step"><b>Get the cert</b><span>From Let's Encrypt, your GoDaddy SSL purchase, or another ACME CA.</span></div>
+    <div class="step"><b>Install</b><span>Imports the cert and key into the Palo and commits only its own change.</span></div>
+    <div class="step"><b>Verify</b><span>Connects to the portal and confirms it's serving the new cert, then logs the result.</span></div>
+  </div>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Piece</th><th>What it does</th><th>Off-the-shelf?</th></tr></thead>
+    <tbody>
+      <tr><td><a href="https://poshac.me">Posh-ACME</a></td><td>Gets and renews the certificate. Built-in GoDaddy and Cloudflare DNS plugins.</td><td>Yes. PowerShell Gallery, maintained since 2018</td></tr>
+      <tr><td>PAN-OS API calls</td><td>Import cert and key, partial commit, check the job</td><td>Same calls as <a href="https://github.com/acmesh-official/acme.sh/blob/master/deploy/panos.sh">acme.sh's PAN-OS deploy hook</a>, already used in the field</td></tr>
+      <tr><td><code>Install-PaloAcme.ps1</code></td><td>Interactive one-time setup and scheduled task</td><td>Custom</td></tr>
+      <tr><td><code>Update-PaloCert.ps1</code></td><td>The daily job: renew, install if changed, verify, log</td><td>Custom, about 120 lines</td></tr>
+    </tbody>
+  </table></div>
+  <h3>Pick your combination</h3>
+  <p>Where the certificate comes from and where your DNS is hosted are separate choices. Setup asks for both.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Certificate from ↓ / DNS at →</th><th>GoDaddy DNS</th><th>Cloudflare DNS</th></tr></thead>
+    <tbody>
+      <tr><td><b>Let's Encrypt</b><br><span style="color:var(--muted)">free, auto-renewing, recommended</span></td><td>GoDaddy API key</td><td>Cloudflare API token</td></tr>
+      <tr><td><b>GoDaddy SSL</b><br><span style="color:var(--muted)">paid certificate</span></td><td>GoDaddy API key (also fetches the ACME details)</td><td>Cloudflare token, plus a GoDaddy key to fetch the ACME details (or type them in)</td></tr>
+      <tr><td><b>Cloudflare / other ACME CA</b><br><span style="color:var(--muted)">by directory URL</span></td><td>GoDaddy API key</td><td>Cloudflare API token</td></tr>
+    </tbody>
+  </table></div>
+  <div class="callout warn">
+    <strong>"Certificate from Cloudflare": not possible yet</strong>
+    <p>Cloudflare's normal certificates only live on its proxy, and its Origin CA certificates are only trusted by that proxy.
+    GP clients would reject them, and GlobalProtect can't run behind the Cloudflare proxy anyway.</p>
+    <p>Cloudflare announced a public certificate authority on 29 Sept 2026 but isn't issuing yet. When it does, choose
+    <b>"Cloudflare or another ACME CA"</b> and paste its directory URL. No script changes needed.</p>
+  </div>
+
+  <div class="callout ok">
+    <strong>Fails safe</strong>
+    <p>If a push fails, the script undoes its uncommitted firewall changes, logs an error, and tries again the next day.
+    The old cert keeps working until the new one is verified.</p>
+  </div>
+</section>
+
+<section id="prereq">
+  <h2><span class="num">02</span>Before you start</h2>
+  <p class="sub">Tick these off before running setup. The checkboxes are just for you; nothing is saved.</p>
+  <div class="prereq">
+    <div class="card">
+      <h4>Windows machine (on site)</h4>
+      <ul class="check">
+        <li><input type="checkbox" id="p1"><label for="p1">Windows Server 2019+ or Windows 10 1803+
+          <span class="path">Needs the built-in <code>curl.exe</code>. Server 2016 won't work as-is.</span></label></li>
+        <li><input type="checkbox" id="p2"><label for="p2">PowerShell 7 installed (preferred)
+          <span class="path">Windows PowerShell 5.1 also works. The task uses whichever one ran setup.</span></label></li>
+        <li><input type="checkbox" id="p3"><label for="p3">Outbound HTTPS (443) allowed to
+          <span class="path">the firewall management IP; your DNS API (<code>api.godaddy.com</code> or <code>api.cloudflare.com</code>); your CA (<code>acme-v02.api.letsencrypt.org</code> and <code>acme-staging-v02.api.letsencrypt.org</code>, or GoDaddy's ACME URL). DNS to <code>1.1.1.1</code> helps setup detect your DNS host.</span></label></li>
+        <li><input type="checkbox" id="p4"><label for="p4">Can reach the GP portal on 443
+          <span class="path">For the "is the new cert live" check. You can give setup the portal's IP instead, or skip the check.</span></label></li>
+        <li><input type="checkbox" id="p5"><label for="p5">Treated as a sensitive server
+          <span class="path">It holds keys that can change your DNS and your firewall cert.</span></label></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>DNS hosted at Cloudflare</h4>
+      <ul class="check">
+        <li><input type="checkbox" id="c1"><label for="c1">Create an API token
+          <span class="path">Cloudflare dashboard → profile icon → <b>My Profile → API Tokens → Create Token</b></span></label></li>
+        <li><input type="checkbox" id="c2"><label for="c2">Template <b>Edit zone DNS</b>
+          <span class="path">Permission: Zone → DNS → Edit</span></label></li>
+        <li><input type="checkbox" id="c3"><label for="c3">Zone Resources: <b>Include → Specific zone →</b> your domain
+          <span class="path">e.g. <code>contoso.com</code>. One zone only, so the token can't touch your other domains.</span></label></li>
+        <li><input type="checkbox" id="c4"><label for="c4">Optional: Client IP filtering = the site's public IP. <b>Leave TTL empty.</b>
+          <span class="path">A token with an end date silently stops renewals when it expires.</span></label></li>
+        <li><input type="checkbox" id="c5"><label for="c5">Create Token, copy it (shown once)
+          <span class="path">Setup asks for it and checks it can see the zone.</span></label></li>
+        <li><input type="checkbox" id="c6"><label for="c6">Portal record is <b>DNS only</b> (grey cloud)
+          <span class="path">DNS → Records → <code>vpn</code>. If it's <i>Proxied</i> (orange), GP and the cert check won't reach the Palo.</span></label></li>
+        <li><input type="checkbox" id="c7"><label for="c7">CAA records allow your CA (if you have any)
+          <span class="path">Type CAA: <code>letsencrypt.org</code> for Let's Encrypt, <code>godaddy.com</code> / <code>starfieldtech.com</code> for GoDaddy. No CAA records = fine.</span></label></li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>DNS hosted at GoDaddy</h4>
+      <ul class="check">
+        <li><input type="checkbox" id="g2"><label for="g2"><b>Production</b> API key and secret
+          <span class="path">developer.godaddy.com → API Keys. Not an "OTE" (test) key. Needs <b>write</b> access; a read-only key will fail.</span></label></li>
+        <li><input type="checkbox" id="g4"><label for="g4">Account allowed to use the API
+          <span class="path">Since April 2026 any account with 1+ domain qualifies. Setup tests the key.</span></label></li>
+      </ul>
+      <div class="callout info">
+        <p><b>Which one am I?</b> What matters is who hosts DNS (the nameservers), not where the domain was bought. Setup detects it for you.
+        DNS somewhere else? Move the zone, or CNAME <code>_acme-challenge.vpn</code> to a zone at Cloudflare/GoDaddy.</p>
+      </div>
+      <div class="callout warn" style="margin-bottom:0">
+        <p>Never paste API keys or tokens into email, chat or tickets. Setup asks for them on the server and stores them locked down.</p>
+      </div>
+    </div>
+    <div class="card">
+      <h4>Certificate from GoDaddy (paid SSL only)</h4>
+      <ul class="check">
+        <li><input type="checkbox" id="g5"><label for="g5">Active SSL certificate with ACME available
+          <span class="path">GoDaddy → SSL → Manage All → ACME Automation → ACME Setup. Not available to API reseller accounts.<br>Which plan: GoDaddy installs nothing on a Palo, so you only need ACME access. The <b>Automated DV SSL</b> plan ("unlimited SSLs per domain") looks like the ACME one. The basic <b>DV SSL</b> plan allows 1 credit and 2 refreshes a year, which won't cover 45-day renewals. Before buying, ask GoDaddy: "does this plan include ACME / EAB credentials?". If issuance fails with "no available product", your plan doesn't include it.</span></label></li>
+        <li><input type="checkbox" id="g3"><label for="g3">Your GoDaddy customer number and a GoDaddy API key
+          <span class="path">Setup uses them to fetch the ACME details automatically, even when DNS is at Cloudflare. Without them, copy the directory URL, EAB Key ID and Key Data from the ACME Setup page when asked.</span></label></li>
+      </ul>
+      <div class="callout info" style="margin-bottom:0">
+        <p>GoDaddy ACME certificates are domain-validated (DV), the same level as Let's Encrypt.</p>
+      </div>
+    </div>
+    <div class="card">
+      <h4>Palo Alto firewall</h4>
+      <ul class="check">
+        <li><input type="checkbox" id="f1"><label for="f1">Admin role: <b>open issue, use Superuser for now</b>
+          <span class="path">On PAN-OS 11.2 only the built-in Dynamic → Superuser role is confirmed to work.
+          A custom role (Role = Device) failed even with <b>every</b> Web UI, XML API and REST API permission enabled and Command Line = superuser:
+          keygen works, but the cert import returns <code>403 User not authorized to perform this operation.</code>
+          The built-in <code>cryptoadmin</code> profile returns <code>403 API Error: Type [import] not authorized for user role.</code>
+          Not yet tried: Dynamic → Device administrator, and a fresh API key (<code>-NewApiKey</code>) after moving the admin to a custom role.
+          Until resolved, rely on Permitted IP and a locked-down server. Found a narrower role that passes <code>Update-PaloCert.ps1 -Force</code>? Please contribute it.</span></label></li>
+        <li><input type="checkbox" id="f2"><label for="f2">Administrator <code>acme-api</code>
+          <span class="path">Device → Administrators → Add. Administrator Type Dynamic → <b>Superuser</b> for now (see above), a long random password, and a password profile that <b>never expires</b>.</span></label></li>
+        <li><input type="checkbox" id="f3"><label for="f3">API key lifetime set to never
+          <span class="path">Device → Setup → Management → Authentication Settings → API Key Lifetime = 0</span></label></li>
+        <li><input type="checkbox" id="f3b"><label for="f3b">API Key Certificate (stops the "deprecated algorithm" commit warning)
+          <span class="path">Device → Certificate Management → Certificates → Generate <code>api-key-cert</code>: self-signed, <b>Certificate Authority checked</b>, RSA <b>3072 or larger</b>, shared (not in a vsys), long expiry (~10 years: keys also die when it expires). Then set Device → Setup → Management → Authentication Settings → API Key Certificate = <code>api-key-cert</code>, and commit. <b>Never use the ACME cert here</b>: it changes on every renewal. Changing this cert invalidates all existing API keys, so do it before setup, or afterwards run <code>Update-PaloCert.ps1 -NewApiKey</code>.</span></label></li>
+        <li><input type="checkbox" id="f4"><label for="f4">Windows machine allowed on the mgmt interface
+          <span class="path">Device → Setup → Interfaces → Management → Permitted IP Addresses</span></label></li>
+        <li><input type="checkbox" id="f5"><label for="f5">Know which SSL/TLS Service Profile GlobalProtect uses
+          <span class="path">Network → GlobalProtect → Portals / Gateways → Authentication tab</span></label></li>
+      </ul>
+      <div class="callout info" style="margin-bottom:0">
+        <p>The API key is tied to the <code>acme-api</code> password. If the password changes or expires, renewals stop until
+        you create a new key (see <a href="#ops">Operations</a>).</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="install">
+  <h2><span class="num">03</span>Install</h2>
+  <p class="sub">Copy the folder (the two <code>.ps1</code> files plus this guide) to the Windows machine. Open PowerShell <b>as Administrator</b> in that folder:</p>
+<pre><button class="copy" type="button">Copy</button>pwsh -ExecutionPolicy Bypass -File .\Install-PaloAcme.ps1</pre>
+  <p>No PowerShell 7? Use <code>powershell</code> instead of <code>pwsh</code>. The daily task runs with whichever one you start setup with.</p>
+  <p>There are no switches to remember. Setup asks questions, checks your answers, and installs nothing until you confirm.</p>
+  <div class="callout info"><b>You never create the Let's Encrypt certificate (or an account) by hand.</b> This setup script creates both. It registers a Let's Encrypt account using your email, proves you own the name with a temporary TXT record, receives the cert, and pushes it to the firewall. After that, the daily task renews it the same way.</div>
+
+  <ol class="prompts">
+    <li><span class="ask">"Get the certificate from Let's Encrypt (free, auto-renewing - recommended)?"</span>
+      <p>Press Enter for yes. If you answer <b>n</b>, you get these choices:</p>
+      <ul>
+        <li><b>1) GoDaddy paid SSL certificate.</b> Setup fetches the ACME details using a GoDaddy key and your customer number.
+            If that fails, it asks you to copy them from GoDaddy → SSL → Manage All → ACME Automation → ACME Setup.</li>
+        <li><b>2) Cloudflare or another ACME CA.</b> Paste the CA's ACME directory URL. Setup asks later whether it needs EAB keys.</li>
+        <li><b>3) Let's Encrypt STAGING.</b> A test run. The cert isn't trusted by clients, and safe test defaults are filled in.</li>
+        <li><b>4) Back</b> to the first question.</li>
+      </ul></li>
+    <li><span class="ask">Names on the cert</span>
+      <p>GP portal FQDN first, then any extra names, separated by commas, e.g. <code>vpn.contoso.com, gw.contoso.com</code>.</p></li>
+    <li><span class="ask">"DNS for contoso.com is hosted at Cloudflare … Use the Cloudflare API to prove domain control?"</span>
+      <p>Setup looks up your public nameservers and suggests the provider. If you answer no, or it's not detected, you get:
+      <b>1) Cloudflare &nbsp;2) GoDaddy &nbsp;3) Cancel</b>. Picking a provider your nameservers don't point to is refused, since the CA wouldn't see the record.</p></li>
+    <li><span class="ask">Contact email</span><p>The certificate authority sends expiry and policy notices here.</p></li>
+    <li><span class="ask">Firewall management IP or FQDN</span>
+      <p>Setup connects to it right away. If it can't, it stops and tells you what to check. If this machine doesn't trust the
+      firewall's management certificate (the factory default one), it asks before continuing without checking it (default no).</p></li>
+    <li><span class="ask">Certificate object name on the firewall</span>
+      <p>Use a <b>new</b> name (default <code>gp-acme</code>; <code>acme-test</code> for staging). Don't reuse your current cert's name.
+      You'll point GlobalProtect at the new name once, at go-live.</p></li>
+    <li><span class="ask">Where to confirm the portal serves the new cert</span>
+      <p>Defaults to the portal FQDN. Enter the portal's public IP if the name doesn't resolve from inside, or <code>none</code> to skip.</p></li>
+    <li><span class="ask">Summary → "Proceed?"</span><p>Read it. Answer <b>n</b> and nothing on the machine has changed.</p></li>
+    <li><span class="ask">DNS credentials: GoDaddy key + secret, or Cloudflare token</span>
+      <p>Tested immediately: the GoDaddy key against the API, the Cloudflare token for access to your zone. If it fails, you can try again or stop.</p></li>
+    <li><span class="ask">Only for a GoDaddy certificate: ACME details</span>
+      <p>Fetched automatically with your customer number. If DNS is at Cloudflare, it first asks whether to use a GoDaddy API key for this.
+      If you answer no, or the lookup fails, type the three values from the ACME Setup page.</p></li>
+    <li><span class="ask">The firewall's <code>acme-api</code> login</span>
+      <p>Setup uses it once to create an API key. The password itself is not stored.</p></li>
+    <li><span class="ask">"Run the first deploy to the firewall now?"</span>
+      <p>Yes runs the scheduled task right away (as SYSTEM, the same way it will run every day).</p></li>
+  </ol>
+
+  <h3>What a run looks like</h3>
+<div class="console"><span class="q">Get the certificate from Let's Encrypt (free, auto-renewing - recommended)? [Y/n]:</span> <span class="a">n</span>
+  1) GoDaddy paid SSL certificate via ACME (ACME details fetched with your GoDaddy API key, or typed in)
+  2) Cloudflare or another ACME CA, by directory URL
+  3) Let's Encrypt STAGING - test run only, clients will NOT trust the cert
+  4) Back
+<span class="q">Choose 1-4:</span> <span class="a">3</span>
+<span class="q">Name(s) on the cert, GP portal FQDN first, comma-separated:</span> <span class="a">vpn.contoso.com</span>
+<span class="q">DNS for contoso.com is hosted at Cloudflare (nameservers: ada.ns.cloudflare.com, bob.ns.cloudflare.com).
+Use the Cloudflare API to prove domain control? [Y/n]:</span> <span class="c">(Enter)</span>
+<span class="q">Contact email for CA expiry notices:</span> <span class="a">it@contoso.com</span>
+<span class="q">Firewall management IP or FQDN:</span> <span class="a">10.0.0.1</span>
+<span class="q">Certificate object name on the firewall ... [acme-test]:</span> <span class="c">(Enter)</span>
+<span class="q">This machine doesn't trust the firewall's mgmt certificate. Connect anyway ...? [y/N]:</span> <span class="a">y</span>
+<span class="q">After each deploy, connect where to confirm the portal serves the new cert? ... [none]:</span> <span class="c">(Enter)</span>
+
+About to set up:
+  Certificate from : Let's Encrypt STAGING (test)
+  Names            : vpn.contoso.com
+  DNS validation   : Cloudflare API
+  Firewall         : 10.0.0.1  (mgmt cert verified: NO)
+  Cert object      : acme-test
+  Served-cert check: off
+  Daily task       : 03:17 as SYSTEM, files in C:\ProgramData\PaloAcme
+<span class="q">Proceed? [Y/n]:</span> <span class="a">y</span>
+<span class="c">... installs Posh-ACME, asks for the Cloudflare token, issues cert, asks for acme-api login ...</span>
+<span class="g">Run the first deploy to the firewall now (as SYSTEM, via the task)? [Y/n]</span></div>
+
+  <div class="callout info">
+    <strong>Re-running setup is normal</strong>
+    <p>Run it again to go from staging to production, switch certificate source or DNS provider, or enter a new key or token.
+    Your previous answers come back as defaults. To change the daily time: <code>.\Install-PaloAcme.ps1 -At 04:30</code>.</p>
+  </div>
+</section>
+
+<section id="test">
+  <h2><span class="num">04</span>Test plan</h2>
+  <p class="sub">Do these in order. T0–T3 use a throwaway cert object, so GlobalProtect users aren't affected.</p>
+
+  <div class="tests">
+    <div class="test"><div class="test-head"><span class="tid">T0</span><h4>DNS credentials work</h4><input type="checkbox" aria-label="T0 done"></div>
+      <div class="test-body"><div><h5>Do</h5><p>Run setup and enter the GoDaddy key or Cloudflare token when asked.</p></div>
+      <div><h5>Pass when</h5><p>No error after entering it. GoDaddy: <b>401</b> = wrong or OTE key, <b>403</b> = account not allowed.
+      Cloudflare: 401/403 = bad token, "can't see zone" = token not scoped to this domain.</p></div></div></div>
+
+    <div class="test"><div class="test-head"><span class="tid">T1</span><h4>Staging certificate issued</h4><input type="checkbox" aria-label="T1 done"></div>
+      <div class="test-body"><div><h5>Do</h5><p>Setup: answer <b>n</b> → <b>3 (STAGING)</b>, accept the defaults (<code>acme-test</code>, check <code>none</code>), confirm your real DNS provider.</p>
+      <p style="margin-top:6px;color:var(--muted)">Do this even if you'll use a GoDaddy cert. GoDaddy has no staging, so prove DNS and the firewall here first (T3g covers GoDaddy).</p></div>
+      <div><h5>Pass when</h5><p>Setup prints the cert's Subject, NotAfter and Thumbprint. This proves the DNS validation works.</p></div></div></div>
+
+    <div class="test"><div class="test-head"><span class="tid">T2a</span><h4>First import to the firewall</h4><input type="checkbox" aria-label="T2a done"></div>
+      <div class="test-body"><div><h5>Do</h5><p>Say yes to "Run the first deploy now", or run <code>Start-ScheduledTask 'PaloAcme Renew'</code>.</p></div>
+      <div><h5>Pass when</h5><ul><li>Application log, source PaloAcme: event <span class="pill ok">1000</span></li>
+      <li>Firewall → Device → Certificates: <code>acme-test</code> has a key and a staging intermediate</li><li>Write down its serial number</li></ul></div></div></div>
+
+    <div class="test"><div class="test-head"><span class="tid">T2b</span><h4>Renewal overwrites in place</h4><span class="pill warn risk">most important</span><input type="checkbox" aria-label="T2b done"></div>
+      <div class="test-body"><div><h5>Do</h5><p>In admin PowerShell, force a real renewal, then run the task again:</p>
+<pre><button class="copy" type="button">Copy</button>$env:POSHACME_HOME='C:\ProgramData\PaloAcme\posh-acme'
+Import-Module Posh-ACME
+Submit-Renewal -Force
+Start-ScheduledTask 'PaloAcme Renew'</pre></div>
+      <div><h5>Pass when</h5><p><code>acme-test</code> shows a <b>new serial</b>, still with a key, and the commit is OK. This is exactly what happens every renewal.</p>
+      <p style="margin-top:6px;color:var(--muted)">If it fails, see <a href="#trouble">Troubleshooting</a>.</p></div></div></div>
+
+    <div class="test"><div class="test-head"><span class="tid">T2c</span><h4>Safety-net undo works</h4><input type="checkbox" aria-label="T2c done"></div>
+      <div class="test-body"><div><h5>Do</h5><p>Paste in the key from <code>C:\ProgramData\PaloAcme\apikey.txt</code> and your firewall IP:</p>
+<pre><button class="copy" type="button">Copy</button>curl.exe -k -d "type=op" -d "key=PASTE_KEY" --data-urlencode "cmd=&lt;revert&gt;&lt;config&gt;&lt;partial&gt;&lt;admin&gt;&lt;member&gt;acme-api&lt;/member&gt;&lt;/admin&gt;&lt;/partial&gt;&lt;/config&gt;&lt;/revert&gt;" https://10.0.0.1/api/</pre></div>
+      <div><h5>Pass when</h5><p>The response contains <code>status="success"</code>. This proves the undo used after a failed deploy is allowed for this role.</p></div></div></div>
+
+    <div class="test"><div class="test-head"><span class="tid">T3</span><h4>Commit is clean</h4><input type="checkbox" aria-label="T3 done"></div>
+      <div class="test-body"><div><h5>Do</h5><p>Open the newest log in <code>C:\ProgramData\PaloAcme\logs</code>, and Monitor → Logs → Configuration on the firewall.</p></div>
+      <div><h5>Pass when</h5><p>The log shows the commit job OK, and the firewall shows the commit by <code>acme-api</code> with only the cert changes.</p></div></div></div>
+
+    <div class="test"><div class="test-head"><span class="tid">T3g</span><h4>GoDaddy certificate (only if using one)</h4><input type="checkbox" aria-label="T3g done"></div>
+      <div class="test-body"><div><h5>Do</h5><p>Re-run setup: answer <b>n</b> → <b>1 (GoDaddy SSL)</b>, keep <code>acme-test</code> and check <code>none</code>. Let it deploy.</p></div>
+      <div><h5>Pass when</h5><p>Event <span class="pill ok">1000</span>, and <code>acme-test</code> on the firewall is now issued by GoDaddy. Only the GoDaddy ACME step is new here.</p>
+      <p style="margin-top:6px;color:var(--muted)">Account creation fails with an EAB or key error? Re-run and type the Key Data from GoDaddy's ACME Setup page when the automatic lookup is skipped.</p></div></div></div>
+
+    <div class="test"><div class="test-head"><span class="tid">T4</span><h4>Production + go-live</h4><input type="checkbox" aria-label="T4 done"></div>
+      <div class="test-body"><div><h5>Do</h5><p>Follow <a href="#golive">Go live</a> below.</p></div>
+      <div><h5>Pass when</h5><p>Event <span class="pill ok">1000</span>, a GP client connects without warnings, and the served chain has 2 or more certs.</p></div></div></div>
+
+    <div class="test"><div class="test-head"><span class="tid">T5</span><h4>Alerts reach you</h4><input type="checkbox" aria-label="T5 done"></div>
+      <div class="test-body"><div><h5>Do</h5><p>Temporarily put a wrong IP in <code>C:\ProgramData\PaloAcme\config.json</code> ("Firewall"), run the task, then put it back.</p></div>
+      <div><h5>Pass when</h5><p>Event <span class="pill bad">1001</span> appears <b>and your RMM / monitoring alerts on it</b>.</p></div></div></div>
+  </div>
+</section>
+
+<section id="golive">
+  <h2><span class="num">05</span>Go live</h2>
+  <p class="sub">Switch GlobalProtect to the auto-renewing cert. You only do this once.</p>
+  <div class="callout warn">
+    <strong>Do this in a maintenance window</strong>
+    <p>Changing the GP SSL/TLS profile can briefly drop connected VPN users. A mistake here locks users out until it's reverted.</p>
+  </div>
+  <ol class="prompts">
+    <li><span class="ask">Re-run setup for production</span>
+      <p>Press Enter at the first question (Let's Encrypt), or choose GoDaddy. Object name <code>gp-acme</code>. Check address = portal FQDN or IP.</p></li>
+    <li><span class="ask">Let it deploy, and expect one error</span>
+      <p>The first run logs <span class="pill bad">1001</span> "serves X, expected Y". That's correct: the cert is on the firewall, but GP still uses the old one.</p></li>
+    <li><span class="ask">Point GlobalProtect at it (by hand, once)</span>
+      <p>Device → Certificate Management → SSL/TLS Service Profile (the one GP uses) → Certificate = <code>gp-acme</code> → OK → Commit.</p></li>
+    <li><span class="ask">Run the task again</span>
+      <p><code>Start-ScheduledTask 'PaloAcme Renew'</code> should now log <span class="pill ok">1000</span>. It retries because the thumbprint is only saved after a successful check.</p></li>
+    <li><span class="ask">Check from outside</span>
+      <p>Connect with a GP client. Optionally, from any machine with OpenSSL:</p>
+<pre><button class="copy" type="button">Copy</button><span class="c"># must print 2 or more (leaf + intermediate)</span>
+openssl s_client -connect vpn.contoso.com:443 -servername vpn.contoso.com -showcerts &lt;/dev/null 2&gt;/dev/null | grep -c 'BEGIN CERTIFICATE'
+<span class="c"># expiry dates and serial number</span>
+openssl s_client -connect vpn.contoso.com:443 -servername vpn.contoso.com &lt;/dev/null 2&gt;/dev/null | openssl x509 -noout -dates -serial</pre></li>
+    <li><span class="ask">Clean up</span><p>Delete the <code>acme-test</code> certificate on the firewall and commit. Keep the old commercial cert until it expires, as a fallback.</p></li>
+  </ol>
+</section>
+
+<section id="mgmt">
+  <h2><span class="num">06</span>Optional: same cert for the admin web UI</h2>
+  <p class="sub">Same mechanism, no second install. Add the firewall's management name to the cert and point the management
+  profile at the same object. Every renewal then updates GlobalProtect and the admin UI together.</p>
+  <div class="callout info"><p>Do this <b>after GlobalProtect go-live works</b>.</p></div>
+  <ol class="prompts">
+    <li><span class="ask">Pick a management name in the same public zone</span>
+      <p>e.g. <code>fw.contoso.com</code>. It does <b>not</b> need a public DNS record, since validation only writes a TXT record.
+      Add an <b>internal</b> DNS A record pointing it at the mgmt IP.</p></li>
+    <li><span class="ask">Re-run setup with both names</span>
+      <p>Keep your other answers. Names = <code>vpn.contoso.com, fw.contoso.com</code> (GP name first). A new cert is issued and pushed into <code>gp-acme</code>.</p></li>
+    <li><span class="ask">Create a management profile (firewall, once)</span>
+      <p>Device → Certificate Management → SSL/TLS Service Profile → Add <code>mgmt-acme</code>, certificate <code>gp-acme</code>, min version TLSv1.2.</p></li>
+    <li><span class="ask">Assign it to the admin UI</span>
+      <p>Device → Setup → Management → General Settings (gear) → SSL/TLS Service Profile = <code>mgmt-acme</code> → <b>Commit</b>.
+      The web UI restarts and you'll be logged out. Browse to <code>https://fw.contoso.com</code>: no certificate warning.</p></li>
+    <li><span class="ask">Optional bonus</span>
+      <p>Re-run setup with firewall address <code>fw.contoso.com</code>. The mgmt cert is now trusted, so setup verifies the firewall connection instead of asking to skip.</p></li>
+  </ol>
+  <div class="callout warn">
+    <strong>Public name exposure</strong>
+    <p>Every name on a public certificate is published in Certificate Transparency logs, so anyone can see <code>fw.contoso.com</code> exists.
+    Use a non-obvious name, or skip this section if that matters for this site.</p>
+  </div>
+  <div class="callout bad">
+    <strong>Locked out of the GUI?</strong>
+    <p>SSH or console into the CLI and run:</p>
+<pre><button class="copy" type="button">Copy</button>configure
+delete deviceconfig system ssl-tls-service-profile
+commit</pre>
+    <p>The admin UI goes back to its default self-signed certificate.</p>
+  </div>
+  <p style="color:var(--muted)">The daily task rides out the admin web server restarting during a commit. A <i>separate</i> admin certificate
+  (different name or CA) would need a second install and isn't supported by setup.</p>
+</section>
+
+<section id="ops">
+  <h2><span class="num">07</span>Operations</h2>
+  <h3>Monitoring: Windows Application log, source <code>PaloAcme</code></h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Event</th><th>Level</th><th>Meaning</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td><b>1000</b></td><td><span class="pill ok">Info</span></td><td>New cert installed and verified</td><td>None</td></tr>
+      <tr><td><b>1002</b></td><td><span class="pill info">Info</span></td><td>Daily check, nothing to do</td><td><b>Alert if missing for 2+ days</b> (task not running)</td></tr>
+      <tr><td><b>1001</b></td><td><span class="pill bad">Error</span></td><td>Renew, install or verify failed</td><td>Read the event and the log. You have about 2 weeks before expiry.</td></tr>
+      <tr><td><b>1003</b></td><td><span class="pill bad">Error</span></td><td>Cert expires in under 10 days and hasn't renewed</td><td>Urgent: fix now</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Common tasks (admin PowerShell)</h3>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Need to…</th><th>Run</th></tr></thead>
+    <tbody>
+      <tr><td>Fix "Invalid credential" / 403 from the firewall (password changed)</td><td><code>pwsh -ExecutionPolicy Bypass -File C:\ProgramData\PaloAcme\Update-PaloCert.ps1 -NewApiKey</code></td></tr>
+      <tr><td>Push the current cert again</td><td><code>pwsh -ExecutionPolicy Bypass -File C:\ProgramData\PaloAcme\Update-PaloCert.ps1 -Force</code></td></tr>
+      <tr><td>Run the daily job now</td><td><code>Start-ScheduledTask 'PaloAcme Renew'</code></td></tr>
+      <tr><td>New GoDaddy key or Cloudflare token, or switch certificate source / DNS provider</td><td>Re-run <code>Install-PaloAcme.ps1</code> (previous answers are defaults)</td></tr>
+      <tr><td>Roll back</td><td>Point the GP SSL/TLS profile back at the old cert and commit, or Device → Setup → Operations → Load config version</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Files in <code>C:\ProgramData\PaloAcme</code></h3>
+  <div class="table-wrap"><table>
+    <tbody>
+      <tr><td><code>config.json</code></td><td>Your setup answers</td></tr>
+      <tr><td><code>apikey.txt</code></td><td>Firewall API key</td></tr>
+      <tr><td><code>deployed-thumbprint.txt</code></td><td>Last cert confirmed live on the firewall</td></tr>
+      <tr><td><code>posh-acme\</code></td><td>ACME account, certs and keys, GoDaddy credentials</td></tr>
+      <tr><td><code>logs\</code></td><td>One log per run, kept 90 days</td></tr>
+    </tbody>
+  </table></div>
+
+  <details><summary>Key rotation (optional, after T2b passes)</summary><div>
+    <p>By default the private key is reused across renewals; the certificate itself still changes about every 30 days. That's the
+    field-proven path on PAN-OS. For a new key on every renewal:</p>
+<pre><button class="copy" type="button">Copy</button>$env:POSHACME_HOME='C:\ProgramData\PaloAcme\posh-acme'
+Import-Module Posh-ACME
+Set-PAOrder -AlwaysNewKey</pre>
+    <p>Then repeat T2b on a test object to confirm the firewall accepts a cert-and-key swap.</p>
+  </div></details>
+</section>
+
+<section id="trouble">
+  <h2><span class="num">08</span>Troubleshooting</h2>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Symptom</th><th>Cause → fix</th></tr></thead>
+    <tbody>
+      <tr><td>GoDaddy check fails with <b>401</b></td><td>Wrong key or secret, or an OTE (test) key. Create a <b>production</b> key.</td></tr>
+      <tr><td>GoDaddy check fails with <b>403</b></td><td>The account isn't allowed to use the API. Alternative: CNAME <code>_acme-challenge</code> to a DNS zone at a provider that has an API.</td></tr>
+      <tr><td>Cloudflare check fails with <b>401/403</b></td><td>Wrong, revoked or expired token. Create a new one (Before you start → Cloudflare).</td></tr>
+      <tr><td>Cloudflare "can't see zone"</td><td>The token's Zone Resources doesn't include this domain. Edit the token and add the zone.</td></tr>
+      <tr><td>Setup says DNS is "not GoDaddy or Cloudflare"</td><td>The zone is hosted elsewhere. Move it, or CNAME <code>_acme-challenge</code> to a zone at Cloudflare/GoDaddy.</td></tr>
+      <tr><td>Issuance fails mentioning <b>CAA</b></td><td>A CAA record doesn't allow your CA. Add <code>letsencrypt.org</code> (or <code>godaddy.com</code>), or remove the restrictive CAA records.</td></tr>
+      <tr><td>Served-cert check fails although the GUI shows the new cert</td><td>The portal record is Proxied (orange cloud) in Cloudflare. Set it to DNS only.</td></tr>
+      <tr><td>"Cannot reach https://… (curl exit 7/28)"</td><td>Machine not in the mgmt Permitted IP list, or a routing or firewall-rule issue.</td></tr>
+      <tr><td>"Couldn't get ACME details from the GoDaddy API"</td><td>Wrong customer number, or a reseller account. Enter the values from GoDaddy → SSL → Manage All → ACME Automation → ACME Setup.</td></tr>
+      <tr><td>GoDaddy order fails with "no available product"</td><td>Your GoDaddy SSL plan has no ACME issuance left (basic DV: 1 credit, 2 refreshes a year). Use the Automated DV SSL plan, or Let's Encrypt.</td></tr>
+      <tr><td>1001 "Import of … failed. missing subject field"</td><td>The cert has no subject (Let's Encrypt <code>tlsserver</code> profile). Setup now always asks for <code>classic</code>: re-run setup.</td></tr>
+      <tr><td>"You do not have an available product" (GoDaddy)</td><td>No active SSL purchase or credit is linked to those ACME credentials.</td></tr>
+      <tr><td>Event 1001 <code>(import certificate)</code> 403 "User not authorized to perform this operation"</td><td>Role-based admin, even with everything enabled. Use Dynamic → Superuser (see Before you start).</td></tr>
+      <tr><td>Event 1001 403 "Type [import] not authorized for user role"</td><td>The role's XML API tab doesn't allow Import.</td></tr>
+      <tr><td>Event 1001 "Invalid credential" or 403 from the firewall</td><td><code>acme-api</code> password changed or expired. Run <code>Update-PaloCert.ps1 -NewApiKey</code>.</td></tr>
+      <tr><td>Event 1001 "serves X, expected Y"</td><td>Expected once at go-live. Otherwise, check the GP profile uses the right cert object and that the check address really reaches the portal.</td></tr>
+      <tr><td>T2b fails: new cert rejected against the stored key</td><td>Swap the order of the two <code>'?type=import'</code> lines in <code>Update-PaloCert.ps1</code> so the key goes first, then re-test.</td></tr>
+      <tr><td>Chain count is 1 (no intermediate)</td><td>Import the Let's Encrypt (or GoDaddy) intermediate once: Device → Certificates → Import, without a key.</td></tr>
+      <tr><td>Event 1001 "REVERT ALSO FAILED"</td><td>Before anyone commits: Commit → Preview Changes, and revert the <code>acme-api</code> changes by hand.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section id="security">
+  <h2><span class="num">09</span>Security &amp; limits</h2>
+  <h3>Security</h3>
+  <ul>
+    <li>Secrets are stored in <code>C:\ProgramData\PaloAcme</code>, readable only by SYSTEM and Administrators. Any local admin on this machine can read them, so keep it a restricted server.</li>
+    <li>The firewall API key is passed to curl privately, never on the command line, so process auditing doesn't log it.</li>
+    <li>A GoDaddy key can edit <b>all</b> DNS in that account. A Cloudflare token can be limited to one zone and DNS only, which is better. Either way, keep it off general-purpose machines.</li>
+    <li><code>acme-api</code> currently needs <b>Superuser</b>, so a stolen API key means full control of the firewall from any address allowed to reach the mgmt interface. Restrict Permitted IP to this server.</li>
+  </ul>
+  <h3>Where secrets are stored</h3>
+  <p>All under <code>C:\ProgramData\PaloAcme</code>. The folder is readable only by SYSTEM and Administrators (inheritance removed).</p>
+  <table>
+    <thead><tr><th>Secret</th><th>File</th><th>Protection</th></tr></thead>
+    <tbody>
+      <tr><td>Firewall API key</td><td><code>apikey.txt</code></td><td>Plain text, folder permissions only</td></tr>
+      <tr><td>Cloudflare token / GoDaddy key</td><td><code>posh-acme\...\pluginargs.json</code></td><td>Posh-ACME alt plugin encryption; its key sits in the same folder, so in practice folder permissions</td></tr>
+      <tr><td>ACME account key, cert private key</td><td><code>posh-acme\...</code></td><td>Folder permissions</td></tr>
+    </tbody>
+  </table>
+  <p>The <code>acme-api</code> password is never stored; it is only used once to generate the API key. Any unattended renewal job
+  has to be able to read its own credentials, so the real controls are a narrow firewall role, Permitted IP, and limiting who is admin on this machine.</p>
+  <h3>Known limits</h3>
+  <ul>
+    <li>Standalone firewall only. For an HA pair, target the active unit (config sync copies the cert). Panorama-managed setups aren't covered.</li>
+    <li>GoDaddy ACME issues domain-validated (DV) certs, the same level as Let's Encrypt.</li>
+    <li>DNS automation covers GoDaddy and Cloudflare. Other DNS hosts need CNAME delegation. Posh-ACME supports about 60 providers if one needs adding.</li>
+    <li>Cloudflare's public CA isn't issuing yet (announced Sept 2026). The "other ACME CA" option is ready for it.</li>
+    <li>Windows Server 2016 has no built-in <code>curl.exe</code>.</li>
+    <li>Field-tested on one site so far (see Status at the top). The test plan above is the real validation for yours.</li>
+  </ul>
+</section>
+
+<footer>
+  <p>Files: <code>Install-PaloAcme.ps1</code>, <code>Update-PaloCert.ps1</code>, <code>README.md</code> (same content, plain text), <code>README.html</code> (this page). License: MIT (see <code>LICENSE</code>).</p>
+  <p>References:
+    <a href="https://poshac.me">Posh-ACME</a> ·
+    <a href="https://github.com/acmesh-official/acme.sh/blob/master/deploy/panos.sh">acme.sh panos.sh</a> ·
+    <a href="https://developer.godaddy.com/en/docs/references/rest/certificates/v2">GoDaddy PKI API v2</a> ·
+    <a href="https://www.godaddy.com/help/set-up-my-ssl-certificate-with-acme-40393">GoDaddy ACME help</a> ·
+    <a href="https://www.godaddy.com/resources/news/godaddy-dns-api-now-works-with-a-single-domain">GoDaddy DNS API (1-domain policy)</a> ·
+    <a href="https://poshac.me/docs/v4/Plugins/Cloudflare/">Posh-ACME Cloudflare plugin</a> ·
+    <a href="https://www.captaindns.com/en/blog/cloudflare-certificate-authority-acme-ari">Cloudflare CA announcement</a> ·
+    <a href="https://community.letsencrypt.org/t/upcoming-let-s-encrypt-profile-changes-on-may-13-20th-and-27th/247049">Let's Encrypt profiles</a>
+  </p>
+</footer>
+</main>
+</div>
+
+<script>
+// Copy buttons
+document.querySelectorAll('pre .copy').forEach(function (btn) {
+  btn.addEventListener('click', function () {
+    var text = btn.parentElement.innerText.replace(/^Copy\s*/, '').replace(/^Copied!\s*/, '');
+    var done = function () { btn.textContent = 'Copied!'; setTimeout(function () { btn.textContent = 'Copy'; }, 1500); };
+    if (navigator.clipboard && window.isSecureContext) { navigator.clipboard.writeText(text).then(done); }
+    else { var t = document.createElement('textarea'); t.value = text; document.body.appendChild(t); t.select(); try { document.execCommand('copy'); done(); } catch (e) {} t.remove(); }
+  });
+});
+// Test checkboxes dim finished tests
+document.querySelectorAll('.test-head input').forEach(function (cb) {
+  cb.addEventListener('change', function () { cb.closest('.test').classList.toggle('done', cb.checked); });
+});
+// Theme toggle
+document.getElementById('themeBtn').addEventListener('click', function () {
+  var root = document.documentElement;
+  var dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
+  root.dataset.theme = dark ? 'light' : 'dark';
+});
+// Highlight current section in the contents
+var links = Array.prototype.slice.call(document.querySelectorAll('nav.toc a'));
+var obs = new IntersectionObserver(function (entries) {
+  entries.forEach(function (e) {
+    if (e.isIntersecting) links.forEach(function (a) { a.classList.toggle('active', a.getAttribute('href') === '#' + e.target.id); });
+  });
+}, { rootMargin: '0px 0px -70% 0px' });
+links.forEach(function (a) { var s = document.querySelector(a.getAttribute('href')); if (s) obs.observe(s); });
+</script>
+</body>
+</html>
