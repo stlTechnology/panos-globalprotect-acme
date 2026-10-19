@@ -187,7 +187,7 @@ footer { color: var(--muted); font-size: .88rem; border-top: 1px solid var(--bor
     cert with Cloudflare DNS, deployed to GlobalProtect and confirmed working with the Windows GP client and on iOS.</p>
     <p><b>Not yet field-tested:</b> a real renewal replacing an existing cert (T2b), the failure-revert call (T2c), GoDaddy DNS,
     GoDaddy SSL (ACME/EAB), other ACME CAs, and Windows PowerShell 5.1 on a real server.</p>
-    <p><b>Open issue:</b> least-privilege firewall role. Today only Superuser is confirmed to work (see <a href="#prereq">Before you start</a>).</p>
+    <p><b>Open issue:</b> least-privilege firewall role. Only Superuser works; custom roles, <code>cryptoadmin</code> and Device administrator all fail the import (see <a href="#prereq">Before you start</a>).</p>
   </div>
 </section>
 
@@ -305,11 +305,17 @@ footer { color: var(--muted); font-size: .88rem; border-top: 1px solid var(--bor
       <h4>Palo Alto firewall</h4>
       <ul class="check">
         <li><input type="checkbox" id="f1"><label for="f1">Admin role: <b>open issue, use Superuser for now</b>
-          <span class="path">On PAN-OS 11.2 only the built-in Dynamic → Superuser role is confirmed to work.
+          <span class="path">On PAN-OS 11.2.15 and 11.2.16 only the built-in Dynamic → Superuser role works.
+          Every failing test used a fresh key (role change committed, then <code>-NewApiKey</code>, then <code>-Force</code>).
           A custom role (Role = Device) failed even with <b>every</b> Web UI, XML API and REST API permission enabled and Command Line = superuser:
           keygen works, but the cert import returns <code>403 User not authorized to perform this operation.</code>
           The built-in <code>cryptoadmin</code> profile returns <code>403 API Error: Type [import] not authorized for user role.</code>
-          Not yet tried: Dynamic → Device administrator, and a fresh API key (<code>-NewApiKey</code>) after moving the admin to a custom role.
+          Dynamic → Device administrator returns the same <code>403 User not authorized</code>.
+          Also ruled out: the API key format (fails with a key made under an API Key Certificate too) and overwriting an in-use cert (fails importing to a new name too).
+          <code>category=keypair</code> (cert + key in one PKCS#12 upload) also returns 403.
+          This contradicts the acme.sh <code>panos.sh</code> docs (XML API Import + Commit on 9.1+), whose import calls are the same as ours.
+          It looks like a regression of earlier fixes for the same symptom: PAN-126205 (8.1.14), PAN-152762 (9.1.7), PAN-199570 (10.1.8 / 10.2.4).
+          <code>Test-PanImportRole.ps1</code> reproduces it with a throwaway cert and no commit.
           Until resolved, rely on Permitted IP and a locked-down server. Found a narrower role that passes <code>Update-PaloCert.ps1 -Force</code>? Please contribute it.</span></label></li>
         <li><input type="checkbox" id="f2"><label for="f2">Administrator <code>acme-api</code>
           <span class="path">Device → Administrators → Add. Administrator Type Dynamic → <b>Superuser</b> for now (see above), a long random password, and a password profile that <b>never expires</b>.</span></label></li>
@@ -589,7 +595,7 @@ Set-PAOrder -AlwaysNewKey</pre>
       <tr><td>"You do not have an available product" (GoDaddy)</td><td>No active SSL purchase or credit is linked to those ACME credentials.</td></tr>
       <tr><td>Event 1001 <code>(import certificate)</code> 403 "User not authorized to perform this operation"</td><td>Role-based admin, even with everything enabled. Use Dynamic → Superuser (see Before you start).</td></tr>
       <tr><td>Event 1001 403 "Type [import] not authorized for user role"</td><td>The role's XML API tab doesn't allow Import.</td></tr>
-      <tr><td>Event 1001 "Invalid credential" or 403 from the firewall</td><td><code>acme-api</code> password changed or expired. Run <code>Update-PaloCert.ps1 -NewApiKey</code>.</td></tr>
+      <tr><td>Event 1001 "Invalid credential" or 403 from the firewall</td><td><code>acme-api</code> password or role changed, password expired, or the API Key Certificate changed (each invalidates the key). Run <code>Update-PaloCert.ps1 -NewApiKey</code>.</td></tr>
       <tr><td>Event 1001 "serves X, expected Y"</td><td>Expected once at go-live. Otherwise, check the GP profile uses the right cert object and that the check address really reaches the portal.</td></tr>
       <tr><td>T2b fails: new cert rejected against the stored key</td><td>Swap the order of the two <code>'?type=import'</code> lines in <code>Update-PaloCert.ps1</code> so the key goes first, then re-test.</td></tr>
       <tr><td>Chain count is 1 (no intermediate)</td><td>Import the Let's Encrypt (or GoDaddy) intermediate once: Device → Certificates → Import, without a key.</td></tr>

@@ -18,7 +18,7 @@ with Cloudflare DNS, deployed to GlobalProtect and confirmed working with the Wi
 **Not yet field-tested:** a real renewal replacing an existing cert (T2b), the failure-revert call (T2c), GoDaddy DNS,
 GoDaddy SSL (ACME/EAB), other ACME CAs, and Windows PowerShell 5.1 on a real server (syntax and mock tests only).
 
-**Open issue:** least-privilege firewall role. Today only Superuser is confirmed to work. See *Prerequisites → Firewall*.
+**Open issue:** least-privilege firewall role. Only Superuser works; custom roles, `cryptoadmin` and Device administrator all fail the import. See *Prerequisites → Firewall*.
 
 ## How it works
 
@@ -87,13 +87,21 @@ pick "Cloudflare or another ACME CA" and enter its directory URL. No code change
 and use Posh-ACME's `-DnsAlias` (not wired into setup).
 
 **Firewall (PAN-OS 11.2)**
-1. **Admin role: open issue.** On PAN-OS 11.2 only the built-in **Dynamic → Superuser** role is confirmed to work. What failed:
+1. **Admin role: Superuser required (open issue).** On PAN-OS 11.2.15 and 11.2.16 only the built-in **Dynamic → Superuser** role works.
+   Every failing test below used a fresh key (role change committed, then `-NewApiKey`, then `-Force`). What failed:
    - A custom role (*Device → Admin Roles*, Role = Device) with XML API `Import`, `Commit` and `Operational Requests`.
      It still failed with **every** Web UI, XML API and REST API permission enabled and Command Line = superuser.
      `type=keygen` works, but `type=import&category=certificate` returns
      `403 User not authorized to perform this operation.`
    - The built-in role-based profile `cryptoadmin`: `403 API Error: Type [import] not authorized for user role.`
-   - Not yet tried: **Dynamic → Device administrator**, and regenerating the API key (`-NewApiKey`) after moving the admin to a custom role.
+   - The built-in **Dynamic → Device administrator**: same `403 User not authorized to perform this operation.`
+   - Also ruled out: the API key format (fails with a key made under an API Key Certificate too), and overwriting an in-use cert (fails importing to a new name too).
+
+   - `category=keypair` (cert + key in one PKCS#12 upload, see `Test-PanImportRole.ps1 -Category keypair`): same 403.
+
+   This contradicts the acme.sh `panos.sh` docs (XML API Import + Commit on PAN-OS 9.1+), whose import calls are the same as ours.
+   It looks like a regression of earlier fixes for the same symptom: PAN-126205 (8.1.14), PAN-152762 (9.1.7), PAN-199570 (10.1.8 / 10.2.4).
+   `Test-PanImportRole.ps1` reproduces it with a throwaway cert and no commit.
 
    Until this is resolved, use Superuser and rely on the mitigations under *Security notes* (Permitted IP, a locked-down server).
    If you find a narrower role that passes `Update-PaloCert.ps1 -Force`, please contribute it.
@@ -220,7 +228,7 @@ picked up by the next human commit. If the revert also fails, the 1001 event say
 | "You do not have an available product" (GoDaddy) | No active SSL purchase/credit linked to those ACME credentials |
 | 1001 `(import certificate)` 403 "User not authorized to perform this operation" | Role-based admin, even with everything enabled. Use Dynamic → Superuser (see *Prerequisites → Firewall*) |
 | 1001 403 "Type [import] not authorized for user role" | The role's XML API tab doesn't allow Import |
-| 1001 "Invalid credential" / 403 from firewall | `acme-api` password changed: `Update-PaloCert.ps1 -NewApiKey` |
+| 1001 "Invalid credential" / 403 from firewall | `acme-api` password or role changed, or the API Key Certificate changed (each invalidates the key): `Update-PaloCert.ps1 -NewApiKey` |
 | 1001 "serves X, expected Y" | Expected once at go-live; otherwise GP profile uses another cert, or check address is wrong |
 | 1001 "REVERT ALSO FAILED" | Before anyone commits: *Commit → Preview Changes*, revert `acme-api`'s changes |
 
